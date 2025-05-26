@@ -91,6 +91,7 @@ function getUserProjectFiles(userId) {
 
 // Add OpenAI integration
 const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || '',
 });
 
 // Assistant ID
