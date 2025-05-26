@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qubic Development Environment</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --header-height: 40px;
+            --statusbar-height: 22px;
+            --primary-color: #007acc;
+            --bg-color: #1e1e1e;
+            --text-color: #cccccc;
+            --border-color: #454545;
+            --hover-item-bg: #2a2d2e;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            display: grid;
+            grid-template-rows: var(--header-height) 1fr var(--statusbar-height);
+            min-height: 100vh;
+        }
+
+        .header {
+            background-color: var(--bg-color);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            z-index: 10;
+        }
+
+        .menu-bar {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+            align-items: center;
+        }
+
+        .menu-item {
+            cursor: pointer;
+            padding: 0 5px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-color);
+        }
+
+        a.menu-item {
+            color: var(--text-color);
+            text-decoration: none;
+        }
+
+        .menu-item:hover {
+            background-color: var(--hover-item-bg);
+        }
+
+        .menu-item.active {
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .menu-spacer {
+            flex: 1;
+        }
+
+        .login-button {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 4px;
+            padding: 5px 12px !important;
+            margin-left: 10px;
+            transition: background-color 0.2s;
+        }
+
+        .login-button:hover {
+            background-color: #005999;
+        }
+
+        .login-button.logged-in {
+            background-color: #2a6e3f;
+        }
+
+        .login-button.logged-in:hover {
+            background-color: #1e5230;
+        }
+
+        .main-content {
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .readme-section {
+            margin-bottom: 40px;
+        }
+
+        .readme-section h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+
+        .readme-section h2 {
+            font-size: 1.8em;
+            margin: 25px 0 15px;
+            color: var(--primary-color);
+        }
+
+        .readme-section h3 {
+            font-size: 1.4em;
+            margin: 20px 0 10px;
+        }
+
+        .readme-section p {
+            margin-bottom: 15px;
+        }
+
+        .readme-section ul, .readme-section ol {
+            margin-bottom: 15px;
+            padding-left: 25px;
+        }
+
+        .readme-section li {
+            margin-bottom: 8px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .feature-card {
+            background-color: #252526;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            padding: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .feature-card h3 {
+            color: var(--primary-color);
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .feature-card h3 i {
+            margin-right: 10px;
+        }
+
+        .feature-card p {
+            margin-bottom: 0;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .cta-button {
+            padding: 12px 24px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.2s;
+            text-decoration: none;
+        }
+
+        a.cta-button {
+            text-decoration: none;
+            color: white;
+        }
+
+        .cta-button:hover {
+            background-color: #005999;
+        }
+
+        .cta-button.secondary {
+            background-color: transparent;
+            border: 1px solid var(--primary-color);
+        }
+
+        .cta-button.secondary:hover {
+            background-color: rgba(0, 122, 204, 0.1);
+        }
+
+        .statusbar {
+            background-color: #007acc;
+            color: white;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            font-size: 0.8em;
+        }
+
+        code {
+            background-color: #1a1a1a;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+
+        pre {
+            background-color: #1a1a1a;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            z-index: 1000;
+            animation: slide-in 0.5s, fade-out 0.5s 4.5s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .notification.success {
+            background-color: #28a745;
+        }
+        
+        .notification.error {
+            background-color: #dc3545;
+        }
+        
+        .notification.info {
+            background-color: var(--primary-color);
+        }
+        
+        @keyframes slide-in {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes fade-out {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 20px;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="menu-bar">
+                <div class="menu-item active">
+                    <i class="fas fa-home"></i> Home
+                </div>
+                <a href="smart-contract-tester.html" class="menu-item">
+                    <i class="fas fa-vial"></i> Smart Contract IDE
+                </a>
+                <a href="index.html" class="menu-item">
+                    <i class="fas fa-terminal"></i> CLI IDE
+                </a>
+               
+                <div class="menu-spacer"></div>
+            </div>
+        </header>
+
+        
+
+        <main class="main-content">
+            <div class="readme-section">
+                <h1>Qubic Development Environment</h1>
+                <p>
+                    Welcome to the Qubic Development Environment, an integrated platform for building, testing, and deploying Qubic smart contracts and applications.
+                    This environment provides a complete set of tools designed to streamline your Qubic development workflow.
+                </p>
+                
+                <div class="cta-buttons">
+                    <a href="index.html" class="cta-button" id="get-started-cli">
+                        <i class="fas fa-terminal"></i> CLI IDE
+                    </a>
+                    <a href="smart-contract-tester.html" class="cta-button" id="get-started-contract">
+                        <i class="fas fa-vial"></i> Smart Contract IDE
+                    </a>
+                </div>
+                <h2>Features</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h3><i class="fas fa-vial"></i> Smart Contract IDE</h3>
+                        <p>Specialized environment for writing, testing, and deploying smart contracts on the Qubic network with real-time feedback and validation.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3><i class="fas fa-terminal"></i> CLI IDE</h3>
+                        <p>Interactive command-line interface for working with Qubic blockchain. Execute commands, monitor responses, and develop applications in real-time.</p>
+                    </div>
+                  
+                    <div class="feature-card">
+                        <h3><i class="fas fa-robot"></i> AI Assistant</h3>
+                        <p>Intelligent assistant to help you with code generation, debugging, and optimization specifically tailored for Qubic development.</p>
+                    </div>
+                </div>
+                
+                <h2>Qubic Smart Contracts – Best Practices & Development Guide</h2>
+                <p>
+                    📌 Introduction<br>
+                    Qubic smart contracts (SCs) are self-executing programs that run within the Qubic ecosystem. They automate logic, manage balances, and interact with the blockchain to process transactions securely and efficiently. This guide provides best practices, structure, and essential components for writing effective Qubic SCs.
+                </p>
+                <hr>
+                <h3>How Qubic Smart Contracts Work</h3>
+                <ol>
+                    <li>Each SC has its own balance – funds sent to the SC are tracked internally.</li>
+                    <li>Transactions interact with the SC – functions in the SC execute based on received inputs.</li>
+                    <li>Epoch-based execution – Qubic SCs operate in epoch cycles (BEGIN_EPOCH and END_EPOCH events).</li>
+                    <li>State persistence – unlike traditional C++, Qubic SCs use state storage to persist data across transactions.</li>
+                </ol>
+                <hr>
+                <h3>Structure of a Qubic Smart Contract</h3>
+                <p>A Qubic SC typically consists of the following components:</p>
+                <ol>
+                    <li><strong>State Variables</strong>
+                        <ul>
+                            <li>SCs do not support local variables inside functions—all important values must be stored in state.</li>
+                            <li>Example:</li>
+                            <pre><code>struct State {
+    uint64_t totalDeposits;
+    uint64_t lastEpochBalance;
+};</code></pre>
+                        </ul>
+                    </li>
+                    <li><strong>Public Functions</strong>
+                        <ul>
+                            <li>Smart contracts expose public functions that can be called by users.</li>
+                            <li>Functions must follow correct qpi function usage.</li>
+                            <li>Example:</li>
+                            <pre><code>PUBLIC void deposit(uint64_t amount) {
+    require(amount > 0, "Deposit must be positive");
+    state.totalDeposits += amount;
+}</code></pre>
+                        </ul>
+                    </li>
+                    <li><strong>Epoch-Based Event Handling</strong>
+                        <ul>
+                            <li>SCs rely on epoch events to track funds and manage state.</li>
+                            <li>The BEGIN_EPOCH function is used for updating balance:</li>
+                            <pre><code>PUBLIC void begin_epoch() {
+    ::Entity entity;
+    bit status = qpi.getEntity(SELF, entity);
+    require(status, "Failed to fetch entity");
+    state.lastEpochBalance = entity.incomingAmount - entity.outgoingAmount;
+}</code></pre>
+                            <li>The END_EPOCH function is used for distributing rewards:</li>
+                            <pre><code>PUBLIC void end_epoch() {
+    print("End of epoch processing complete.");
+}</code></pre>
+                        </ul>
+                    </li>
+                </ol>
+                <hr>
+                <h3>Best Practices for Writing Qubic Smart Contracts</h3>
+                <ol>
+                    <li><strong>Smart Contract Initialization</strong>
+                        <ul>
+                            <li>Always initialize all state variables explicitly to avoid unexpected behavior.</li>
+                            <li>Example:</li>
+                            <pre><code>INITIALIZE
+state.totalDeposits = 0;
+state.lastEpochBalance = 0;</code></pre>
+                        </ul>
+                    </li>
+                    <li><strong>Managing Smart Contract Balances</strong>
+                        <ul>
+                            <li>Fetch SC balance dynamically using:</li>
+                            <pre><code>::Entity entity;
+bit status = qpi.getEntity(SELF, entity);
+uint64_t current_balance = entity.incomingAmount - entity.outgoingAmount;</code></pre>
+                            <li>Never assume a fixed amount—always track incoming and outgoing funds dynamically.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Handling Transactions Correctly</strong>
+                        <ul>
+                            <li>Ensure transactions are properly validated before modifying state.</li>
+                            <li>Example:</li>
+                            <pre><code>PUBLIC void transfer(uint64_t amount) {
+    require(amount > 0, "Amount must be greater than zero");
+    require(state.totalDeposits >= amount, "Insufficient funds");
+    state.totalDeposits -= amount;
+}</code></pre>
+                        </ul>
+                    </li>
+                    <li><strong>Using State Variables Correctly</strong>
+                        <ul>
+                            <li>Store all necessary data in state—Qubic SCs do not retain local variables between calls.</li>
+                            <li>Example:</li>
+                            <pre><code>struct ContractState {
+    uint64_t lastEpochBalance;
+    uint64_t totalRewards;
+};
+ContractState state;</code></pre>
+                        </ul>
+                    </li>
+                    <li><strong>Reward Distribution & Staking</strong>
+                        <ul>
+                            <li>If an SC distributes staking rewards, use END_EPOCH to calculate and distribute correctly.</li>
+                            <li>Example approach:</li>
+                            <pre><code>uint64_t rewards = (state.lastEpochBalance * 5) / 100; // Example 5% reward
+state.totalRewards += rewards;</code></pre>
+                        </ul>
+                    </li>
+                    <li><strong>Security Best Practices</strong>
+                        <ul>
+                            <li>Require conditions before modifying state:</li>
+                            <pre><code>require(state.totalDeposits > 0, "No funds available");</code></pre>
+                            <li>Validate input values:</li>
+                            <pre><code>require(amount > 0, "Invalid amount");</code></pre>
+                            <li>Use qpi.getEntity() for correct SC balance fetching.</li>
+                        </ul>
+                    </li>
+                </ol>
+                <hr>
+                <h3>Example: Simple Qubic Smart Contract</h3>
+                <p>This contract allows users to deposit funds, check their balance, and track epoch-based fund changes.</p>
+                <pre><code>using namespace qpi;
+
+class SimpleQubicContract {
+public:
+    struct State {
+        uint64_t totalDeposits;
+        uint64_t lastEpochBalance;
+    };
+
+    State state;
+
+    // Deposit function
+    PUBLIC void deposit(uint64_t amount) {
+        require(amount > 0, "Deposit must be positive");
+        state.totalDeposits += amount;
+        print("Deposited: ", amount);
+    }
+
+    // Fetch SC balance dynamically
+    PUBLIC uint64_t get_balance() {
+        ::Entity entity;
+        bit status = qpi.getEntity(SELF, entity);
+        require(status, "Failed to fetch balance");
+        return entity.incomingAmount - entity.outgoingAmount;
+    }
+
+    // Epoch event handler
+    PUBLIC void begin_epoch() {
+        ::Entity entity;
+        bit status = qpi.getEntity(SELF, entity);
+        require(status, "Failed to fetch entity");
+        state.lastEpochBalance = entity.incomingAmount - entity.outgoingAmount;
+        print("Updated balance for new epoch.");
+    }
+};</code></pre>
+                <hr>
+               
+                
+                
+                
+                
+                <h2>Getting Started</h2>
+                <h3>Smart Contract IDE</h3>
+                <p>
+                    The Smart Contract IDE is designed specifically for developing smart contracts for the Qubic platform:
+                </p>
+                <ul>
+                    <li>Write contracts with syntax highlighting and code completion</li>
+                    <li>Test your contracts locally before deployment</li>
+                    <li>Submit contracts directly to the testnet</li>
+                    <li>Get AI-powered suggestions for contract optimization and security improvements</li>
+                </ul>
+                <h3>CLI IDE</h3>
+                <p>
+                    The CLI IDE provides a powerful interface for interacting with the Qubic blockchain through command-line instructions:
+                </p>
+                <ul>
+                    <li>Execute common Qubic CLI commands directly from the browser</li>
+                    <li>Save and manage code files for your projects</li>
+                    <li>Compile and run your code with built-in Docker integration</li>
+                    <li>Receive AI assistance for generating optimal commands and troubleshooting</li>
+                </ul>
+                <p>
+                    The CLI commands allow users to perform various operations on the Qubic blockchain. Here are all the commands and how to use them:
+                </p>
+                <ul>
+                    <li><code>./qubic-cli -help</code>: Prints the help message with all available commands.</li>
+                    <li><code>./qubic-cli -nodeip &lt;IPv4_ADDRESS&gt;</code>: Specifies the IP address of the target node for querying blockchain information.</li>
+                    <li><code>./qubic-cli -nodeport &lt;PORT&gt;</code>: Specifies the port of the target node for querying blockchain information.</li>
+                    <li><code>./qubic-cli -seed &lt;SEED&gt;</code>: Specifies the 55-character seed private key.</li>
+                    <li><code>./qubic-cli -conf &lt;file&gt;</code>: Specifies the configuration file.</li>
+                    <li><code>./qubic-cli -scheduletick &lt;TICK_OFFSET&gt;</code>: Specifies the offset number of scheduled tick that will perform a transaction.</li>
+                    <li><code>./qubic-cli -force</code>: Executes an action even if an error has been detected.</li>
+                    <li><code>./qubic-cli -getbalance &lt;IDENTITY&gt;</code>: Retrieves the balance of a specified identity.</li>
+                    <li><code>./qubic-cli -getasset &lt;IDENTITY&gt;</code>: Prints a list of assets of a specified identity.</li>
+                    <li><code>./qubic-cli -queryassets &lt;QUERY_TYPE&gt; &lt;QUERY_STRING&gt;</code>: Queries and prints asset information based on the specified query type and string.</li>
+                    <li><code>./qubic-cli -sendtoaddress &lt;TARGET_IDENTITY&gt; &lt;AMOUNT&gt;</code>: Sends a specified amount of qubic to a target identity.</li>
+                    <li><code>./qubic-cli -sendtoaddressintick &lt;TARGET_IDENTITY&gt; &lt;AMOUNT&gt; &lt;TICK&gt;</code>: Sends a specified amount of qubic to a target identity in a specific tick.</li>
+                    <li><code>./qubic-cli -qutilsendtomanyv1 &lt;FILE&gt;</code>: Performs multiple transactions within one tick based on the data in the specified file.</li>
+                    <li><code>./qubic-cli -qutilburnqubic &lt;AMOUNT&gt;</code>: Burns a specified amount of qubic.</li>
+                    <li><code>./qubic-cli -gettickdata &lt;TICK_NUMBER&gt; &lt;OUTPUT_FILE_NAME&gt;</code>: Gets tick data and writes it to a specified file.</li>
+                    <li><code>./qubic-cli -readtickdata &lt;FILE_NAME&gt;</code>: Reads tick data from a file and prints the output on screen.</li>
+                    <li><code>./qubic-cli -checktxonfile &lt;TX_HASH&gt; &lt;TICK_DATA_FILE&gt;</code>: Checks if a transaction is included in a tick based on the tick data from a file.</li>
+                    <li><code>./qubic-cli -checktxontick &lt;TICK_NUMBER&gt; &lt;TX_HASH&gt;</code>: Checks if a transaction is included in a tick online.</li>
+                    <li><code>./qubic-cli -getcurrenttick</code>: Fetches the current tick information of the node.</li>
+                    <li><code>./qubic-cli -sendspecialcommand &lt;COMMAND_IN_NUMBER&gt;</code>: Performs a special command to the node.</li>
+                    <li><code>./qubic-cli -togglemainaux &lt;MODE_0&gt; &lt;MODE_1&gt;</code>: Remotely toggles Main/Aux mode on the node.</li>
+                    <li><code>./qubic-cli -setsolutionthreshold &lt;EPOCH&gt; &lt;SOLUTION_THRESHOLD&gt;</code>: Remotely sets the solution threshold for future epochs.</li>
+                    <li><code>./qubic-cli -refreshpeerlist</code>: Remotely refreshes the peer list of the node.</li>
+                    <li><code>./qubic-cli -forcenexttick</code>: Remotely forces the next tick on the node to be empty.</li>
+                    <li><code>./qubic-cli -reissuevote</code>: Remotely re-issues (re-sends) a vote on the node.</li>
+                    <li><code>./qubic-cli -sendrawpacket &lt;DATA_IN_HEX&gt; &lt;SIZE&gt;</code>: Sends a raw packet to the node IP.</li>
+                    <li><code>./qubic-cli -synctime</code>: Syncs the node time with local time.</li>
+                    <li><code>./qubic-cli -getminingscoreranking</code>: Gets the current mining score ranking.</li>
+                    <li><code>./qubic-cli -getvotecountertx &lt;COMPUTOR_LIST_FILE&gt; &lt;TICK&gt;</code>: Gets vote counter transaction of a tick.</li>
+                    <li><code>./qubic-cli -getquorumtick &lt;COMP_LIST_FILE&gt; &lt;TICK_NUMBER&gt;</code>: Gets quorum tick data.</li>
+                    <li><code>./qubic-cli -getcomputorlist &lt;OUTPUT_FILE_NAME&gt;</code>: Gets computor list of the current epoch.</li>
+                    <li><code>./qubic-cli -getnodeiplist</code>: Prints a list of node IPs from a seed node IP.</li>
+                    <li><code>./qubic-cli -gettxinfo &lt;TX_ID&gt;</code>: Gets transaction information.</li>
+                    <li><code>./qubic-cli -checktxontick &lt;TICK_NUMBER&gt; &lt;TX_ID&gt;</code>: Checks if a transaction is included in a tick.</li>
+                    <li><code>./qubic-cli -checktxonfile &lt;TX_ID&gt; &lt;TICK_DATA_FILE&gt;</code>: Checks if a transaction is included in a tick based on a file.</li>
+                    <li><code>./qubic-cli -readtickdata &lt;FILE_NAME&gt; &lt;COMPUTOR_LIST&gt;</code>: Reads tick data from a file.</li>
+                    <li><code>./qubic-cli -sendcustomtransaction &lt;TARGET_IDENTITY&gt; &lt;TX_TYPE&gt; &lt;AMOUNT&gt; &lt;EXTRA_BYTE_SIZE&gt; &lt;EXTRA_BYTE_IN_HEX&gt;</code>: Performs a custom transaction.</li>
+                    <li><code>./qubic-cli -dumpspectrumfile &lt;SPECTRUM_BINARY_FILE&gt; &lt;OUTPUT_CSV_FILE&gt;</code>: Dumps spectrum file into CSV.</li>
+                    <li><code>./qubic-cli -dumpuniversefile &lt;UNIVERSE_BINARY_FILE&gt; &lt;OUTPUT_CSV_FILE&gt;</code>: Dumps universe file into CSV.</li>
+                    <li><code>./qubic-cli -dumpcontractfile &lt;CONTRACT_BINARY_FILE&gt; &lt;CONTRACT_ID&gt; &lt;OUTPUT_CSV_FILE&gt;</code>: Dumps contract file into CSV.</li>
+                    <li><code>./qubic-cli -makeipobid &lt;CONTRACT_INDEX&gt; &lt;NUMBER_OF_SHARE&gt; &lt;PRICE_PER_SHARE&gt;</code>: Participates in an IPO.</li>
+                    <li><code>./qubic-cli -getipostatus &lt;CONTRACT_INDEX&gt;</code>: Views IPO status.</li>
+                    <li><code>./qubic-cli -getsysteminfo</code>: Views current system status.</li>
+                </ul>
+                <p>
+                    Each command is designed to facilitate interaction with the blockchain efficiently and effectively, allowing for a seamless development experience.
+                </p>
+                
+             
+
+                
+            </div>
+        </main>
+
+        <footer class="statusbar">
+            Ready
+        </footer>
+    </div>
+
+    <script src="auth-modal.js"></script>
+    <script src="readme.js"></script>
+</body>
+</html> 

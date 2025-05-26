@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartContract CLI Assistant</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --header-height: 40px;
+            --statusbar-height: 22px;
+            --sidebar-width: 250px;
+            --terminal-height: 300px;
+            --editor-bg: #1e1e1e;
+            --sidebar-bg: #252526;
+            --terminal-bg: #1e1e1e;
+            --text-color: #cccccc;
+            --primary-color: #007acc;
+            --border-color: #3c3c3c;
+            --hover-item-bg: #2a2d2e;
+            --active-item-bg: #37373d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--editor-bg);
+            color: var(--text-color);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .vscode-container {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            grid-template-rows: var(--header-height) 1fr var(--statusbar-height);
+            grid-template-areas:
+                "header header"
+                "sidebar main"
+                "statusbar statusbar";
+            height: 100vh;
+        }
+
+        .header {
+            grid-area: header;
+            background-color: var(--sidebar-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+        }
+
+        .menu-bar {
+            display: flex;
+            align-items: center;
+            height: 100%;
+        }
+
+        .menu-item {
+            padding: 0 15px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .menu-item:hover {
+            background-color: var(--hover-item-bg);
+        }
+
+        .sidebar {
+            grid-area: sidebar;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+        }
+
+        .file-explorer {
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .file-header {
+            padding: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.8em;
+            letter-spacing: 1px;
+        }
+
+        .main-content {
+            grid-area: main;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .statusbar {
+            grid-area: statusbar;
+            background-color: #007acc;
+            color: white;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            font-size: 0.8em;
+        }
+
+        /* AI Assistant Styles */
+        .ai-assistant-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            height: calc(100vh - var(--header-height) - var(--statusbar-height));
+        }
+
+        .ai-assistant-sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+        }
+
+        .ai-assistant-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .ai-assistant-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .ai-assistant-input-container {
+            padding: 15px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            background-color: var(--editor-bg);
+        }
+
+        .ai-assistant-input {
+            flex: 1;
+            padding: 12px 15px;
+            background-color: #3c3c3c;
+            border: 1px solid #3c3c3c;
+            color: var(--text-color);
+            border-radius: 4px;
+            outline: none;
+            font-family: inherit;
+            font-size: 14px;
+            resize: none;
+            min-height: 50px;
+            max-height: 150px;
+        }
+
+        .ai-assistant-input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .ai-assistant-send {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0 20px;
+            margin-left: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .ai-assistant-send:hover {
+            background-color: #005999;
+        }
+
+        .ai-message {
+            max-width: 90%;
+            padding: 15px;
+            border-radius: 8px;
+            word-wrap: break-word;
+            line-height: 1.5;
+        }
+
+        .ai-message.user {
+            align-self: flex-end;
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .ai-message.assistant {
+            align-self: flex-start;
+            background-color: #2d2d2d;
+            color: var(--text-color);
+        }
+
+        .ai-message.thinking {
+            align-self: center;
+            background-color: transparent;
+            color: #888;
+            font-style: italic;
+        }
+
+        .ai-message pre {
+            background-color: #1a1a1a;
+            padding: 12px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        .ai-message code {
+            font-family: 'Consolas', 'Courier New', monospace;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .ai-message ul, .ai-message ol {
+            padding-left: 20px;
+            margin: 10px 0;
+        }
+
+        .ai-message p {
+            margin: 8px 0;
+        }
+
+        .ai-message h1, .ai-message h2, .ai-message h3 {
+            margin-top: 16px;
+            margin-bottom: 8px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .vscode-container {
+                grid-template-columns: 1fr;
+                grid-template-areas:
+                    "header"
+                    "main"
+                    "statusbar";
+            }
+
+            .sidebar {
+                display: none;
+                position: absolute;
+                top: var(--header-height);
+                left: 0;
+                height: calc(100vh - var(--header-height) - var(--statusbar-height));
+                z-index: 100;
+            }
+
+            .sidebar.show {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="vscode-container">
+        <header class="header">
+            <div class="menu-bar">
+                <div class="menu-item" id="back-to-ide">
+                    <i class="fas fa-arrow-left"></i> Back to IDE
+                </div>
+                <div class="menu-item">SmartContract CLI Assistant</div>
+            </div>
+        </header>
+
+        <aside class="sidebar">
+            <div class="file-explorer">
+                <div class="file-header">AI Assistant</div>
+                <!-- Could add conversation history or templates here -->
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="ai-assistant-content">
+                <div class="ai-assistant-main">
+                    <div class="ai-assistant-messages" id="ai-assistant-messages">
+                        <div class="ai-message assistant">
+                            <h2>Welcome to SmartContract CLI Assistant (SCCAI) 🚀</h2>
+                            
+                            <p>I'm here to help you create CLI commands for interacting with your smart contract in C++!</p>
+                            
+                            <h3>How It Works:</h3>
+                            
+                            <ol>
+                                <li>Provide your smart contract code – I'll analyze it and suggest CLI commands.</li>
+                                <li>Generate C++ files – I'll create the .h and .cpp files needed for your CLI.</li>
+                                <li>You need to upload the generated files to the Online IDE at http://147.182.192.28:3000/</li>
+                                <li>Update CMakeLists.txt – Ensure the new files are listed in SET(FILES ...).</li>
+                                <li>Click "Save All" and "Compile & Run" to build the project.</li>
+                                <li>Check the Terminal – If errors appear, I'll help you troubleshoot and fix them.</li>
+                            </ol>
+                            
+                            <p>Let's get started! Paste your smart contract, and I'll guide you from there.</p>
+                        </div>
+                    </div>
+                    <div class="ai-assistant-input-container">
+                        <textarea class="ai-assistant-input" id="ai-assistant-input" placeholder="Type your message here..."></textarea>
+                        <button class="ai-assistant-send" id="ai-assistant-send">Send</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="statusbar">
+            Ready
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/socket.io/client-dist/socket.io.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const socket = io({
+                reconnection: true,
+                reconnectionAttempts: 5,
+                reconnectionDelay: 1000,
+                reconnectionDelayMax: 5000,
+                timeout: 20000
+            });
+            
+            // Back to IDE button
+            document.getElementById('back-to-ide').addEventListener('click', () => {
+                window.location.href = '/';
+            });
+            
+            const aiMessages = document.getElementById('ai-assistant-messages');
+            const aiInput = document.getElementById('ai-assistant-input');
+            const aiSend = document.getElementById('ai-assistant-send');
+
+            // Check if user is logged in
+            function checkLoginStatus() {
+                const cookies = document.cookie.split(';');
+                let loggedIn = false;
+                let userId = null;
+                
+                for (let cookie of cookies) {
+                    const [name, value] = cookie.trim().split('=');
+                    if (name === 'qubicUserId' && value) {
+                        loggedIn = true;
+                        userId = value;
+                        break;
+                    }
+                }
+                
+                if (!loggedIn) {
+                    // User is not logged in, show message and disable input
+                    const loginMessageElement = document.createElement('div');
+                    loginMessageElement.className = 'ai-message assistant';
+                    loginMessageElement.innerHTML = '<p>⚠️ <strong>You need to be logged in to use the AI Assistant.</strong></p><p>Please <a href="/" style="color: #007acc;">go back to the IDE</a> and log in first.</p>';
+                    aiMessages.appendChild(loginMessageElement);
+                    
+                    // Disable input and send button
+                    aiInput.disabled = true;
+                    aiInput.placeholder = "Please log in to use the AI Assistant...";
+                    aiSend.disabled = true;
+                    aiSend.style.opacity = '0.5';
+                    
+                    return false;
+                }
+                
+                return true;
+            }
+            
+            // Check login status initially
+            let isLoggedIn = checkLoginStatus();
+            
+            // Listen for login events
+            socket.on('login-success', (data) => {
+                isLoggedIn = true;
+                
+                // Enable input and send button
+                aiInput.disabled = false;
+                aiInput.placeholder = "Type your message here...";
+                aiSend.disabled = false;
+                aiSend.style.opacity = '1';
+                
+                // Remove login message if it exists
+                const loginMessage = aiMessages.querySelector('.ai-message.assistant:last-child');
+                if (loginMessage && loginMessage.innerHTML.includes('need to be logged in')) {
+                    aiMessages.removeChild(loginMessage);
+                }
+                
+                // Add welcome back message
+                const welcomeElement = document.createElement('div');
+                welcomeElement.className = 'ai-message assistant';
+                welcomeElement.innerHTML = `<p>Welcome, ${data.userId}! You can now use the SmartContract CLI Assistant.</p>`;
+                aiMessages.appendChild(welcomeElement);
+            });
+
+            // Auto-resize textarea
+            aiInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+
+            // Send message function
+            function sendAiMessage() {
+                if (!isLoggedIn) {
+                    return; // Prevent sending if not logged in
+                }
+                
+                const message = aiInput.value.trim();
+                if (!message) return;
+
+                // Add user message to chat
+                const userMessageElement = document.createElement('div');
+                userMessageElement.className = 'ai-message user';
+                userMessageElement.textContent = message;
+                aiMessages.appendChild(userMessageElement);
+
+                // Clear input and reset height
+                aiInput.value = '';
+                aiInput.style.height = 'auto';
+
+                // Add thinking message
+                const thinkingElement = document.createElement('div');
+                thinkingElement.className = 'ai-message thinking';
+                thinkingElement.textContent = 'Thinking...';
+                aiMessages.appendChild(thinkingElement);
+
+                // Scroll to bottom
+                aiMessages.scrollTop = aiMessages.scrollHeight;
+
+                // Send to server
+                socket.emit('ai-message', message);
+            }
+
+            // Send button click
+            aiSend.addEventListener('click', sendAiMessage);
+
+            // Ctrl+Enter to send
+            aiInput.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+                    sendAiMessage();
+                    event.preventDefault();
+                }
+            });
+
+            // Handle AI responses
+            socket.on('ai-response', (response) => {
+                // Handle thinking state updates
+                if (response.status === 'thinking') {
+                    // Check if there's already a thinking element
+                    let thinkingElement = aiMessages.querySelector('.ai-message.thinking');
+                    
+                    if (thinkingElement) {
+                        // Update existing thinking element
+                        thinkingElement.textContent = response.message || 'Thinking...';
+                    } else {
+                        // Create new thinking element
+                        thinkingElement = document.createElement('div');
+                        thinkingElement.className = 'ai-message thinking';
+                        thinkingElement.textContent = response.message || 'Thinking...';
+                        aiMessages.appendChild(thinkingElement);
+                        
+                        // Scroll to bottom
+                        aiMessages.scrollTop = aiMessages.scrollHeight;
+                    }
+                    return;
+                }
+                
+                // Remove thinking message for non-thinking responses
+                const thinkingElement = aiMessages.querySelector('.ai-message.thinking');
+                if (thinkingElement) {
+                    aiMessages.removeChild(thinkingElement);
+                }
+
+                if (response.error) {
+                    // Show error
+                    const errorElement = document.createElement('div');
+                    errorElement.className = 'ai-message assistant';
+                    errorElement.textContent = `Error: ${response.error}`;
+                    aiMessages.appendChild(errorElement);
+                } else {
+                    // Show response
+                    const assistantElement = document.createElement('div');
+                    assistantElement.className = 'ai-message assistant';
+                    
+                    // Process markdown-like content
+                    let content = response.content || '';
+                    
+                    // Convert code blocks
+                    content = content.replace(/```(\w*)([\s\S]*?)```/g, (match, language, code) => {
+                        return `<pre><code class="language-${language}">${code.trim()}</code></pre>`;
+                    });
+                    
+                    // Convert inline code
+                    content = content.replace(/`([^`]+)`/g, '<code>$1</code>');
+                    
+                    // Convert headers
+                    content = content.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+                    content = content.replace(/^## (.*$)/gm, '<h2>$1</h2>');
+                    content = content.replace(/^# (.*$)/gm, '<h1>$1</h1>');
+                    
+                    // Convert lists
+                    content = content.replace(/^\s*\d+\.\s+(.*$)/gm, '<li>$1</li>');
+                    content = content.replace(/^\s*\*\s+(.*$)/gm, '<li>$1</li>');
+                    content = content.replace(/(<li>.*<\/li>)/gms, '<ol>$1</ol>');
+                    
+                    // Convert paragraphs
+                    content = content.replace(/^(?!<[a-z])(.*$)/gm, '<p>$1</p>');
+                    
+                    // Clean up any double-wrapped paragraphs
+                    content = content.replace(/<p><(h[1-3]|pre|ol|ul)>/g, '<$1>');
+                    content = content.replace(/<\/(h[1-3]|pre|ol|ul)><\/p>/g, '</$1>');
+                    
+                    assistantElement.innerHTML = content;
+                    aiMessages.appendChild(assistantElement);
+                }
+
+                // Scroll to bottom
+                aiMessages.scrollTop = aiMessages.scrollHeight;
+            });
+        });
+    </script>
+</body>
+</html>

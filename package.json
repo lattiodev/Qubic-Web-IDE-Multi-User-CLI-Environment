@@ -1,0 +1,21 @@
+{
+  "name": "qubic-cli",
+  "version": "1.0.0",
+  "description": "Qubic Core client",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
+    "express": "^4.21.2",
+    "fs": "^0.0.1-security",
+    "openai": "^4.85.4",
+    "path": "^0.12.7",
+    "socket.io": "^4.8.1"
+  }
+}
